@@ -1,0 +1,115 @@
+version: 2
+
+models:
+  - name: stg_telegram_messages
+    description: "Staging model for raw Telegram messages, cleaning and extracting key fields."
+    columns:
+      - name: raw_id
+        description: "Primary key from the raw table."
+        tests:
+          - unique
+          - not_null
+      - name: message_id
+        description: "Unique identifier for the Telegram message."
+        tests:
+          - unique
+          - not_null
+      - name: channel_name
+        description: "Name of the Telegram channel."
+      - name: message_text
+        description: "Content of the Telegram message."
+      - name: message_date_time
+        description: "Timestamp of when the message was sent."
+      - name: views_count
+        description: "Number of views for the message."
+      - name: forwards_count
+        description: "Number of times the message was forwarded."
+      - name: replies_count
+        description: "Number of replies to the message."
+      - name: has_media
+        description: "Boolean indicating if the message contains media (e.g., image)."
+      - name: scraped_at
+        description: "Timestamp of when the message was scraped."
+
+  - name: dim_channels
+    description: "Dimension table for Telegram channels."
+    columns:
+      - name: channel_name
+        description: "Unique name of the Telegram channel."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_dates
+    description: "Dimension table for dates."
+    columns:
+      - name: date_day
+        description: "Date in YYYY-MM-DD format."
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_messages
+    description: "Fact table containing transformed Telegram message data."
+    columns:
+      - name: raw_id
+        description: "Primary key from the raw table."
+        tests:
+          - unique
+          - not_null
+      - name: message_id
+        description: "Unique identifier for the Telegram message."
+        tests:
+          - unique
+          - not_null
+      - name: channel_name
+        description: "Foreign key to dim_channels."
+        tests:
+          - relationships:
+              to: ref('dim_channels')
+              field: channel_name
+      - name: date_day
+        description: "Foreign key to dim_dates."
+        tests:
+          - relationships:
+              to: ref('dim_dates')
+              field: date_day
+      - name: views_count
+        description: "Number of views for the message."
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                severity: warn
+
+  - name: fct_image_detections
+    description: "Fact table containing image detection results from YOLOv8."
+    columns:
+      - name: detection_id
+        description: "Primary key for the image detection record."
+        tests:
+          - unique
+          - not_null
+      - name: message_id
+        description: "Foreign key to fct_messages, linking detection to the original message."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fct_messages')
+              field: message_id
+      - name: detected_object_class
+        description: "Class of the object detected (e.g., 'person', 'car')."
+        tests:
+          - not_null
+      - name: confidence_score
+        description: "Confidence score of the detection (0-1)."
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0 AND <= 1"
+              config:
+                severity: error
+      - name: image_path
+        description: "Path to the image file where the object was detected."
+      - name: detected_at
+        description: "Timestamp when the object detection was performed."
