@@ -1,1 +1,7 @@
 .env
+venv/
+data/
+# Sensitive and large files
+telegram_session.session
+data/
+scraper.log
