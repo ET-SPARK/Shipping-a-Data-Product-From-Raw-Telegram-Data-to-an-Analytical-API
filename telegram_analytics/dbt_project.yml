@@ -38,3 +38,4 @@ sources:
     schema: public
     tables:
       - name: raw_telegram_messages
+      - name: raw_image_detections

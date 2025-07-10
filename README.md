@@ -13,6 +13,7 @@ scraper/                    # Python scripts for data scraping
   main.py
 scripts/                    # Helper scripts (e.g., data loading)
   load_to_postgres.py
+  detect_objects.py         # Script for YOLOv8 object detection
 telegram_analytics/         # dbt project for data transformation
   models/
     staging/
@@ -57,7 +58,12 @@ This project follows a simple feature-branching workflow:
     python scripts/load_to_postgres.py
     ```
 
-5.  **Run dbt transformations:**
+5.  **Run object detection and load results:**
+    ```bash
+    python scripts/detect_objects.py
+    ```
+
+6.  **Run dbt transformations:**
     -   Navigate to the dbt project directory: `cd telegram_analytics`
     -   Run dbt models: `dbt run`
     -   Run dbt tests: `dbt test`
@@ -96,3 +102,11 @@ This task uses dbt to transform raw data into a clean, structured data warehouse
     -   **Staging Models:** Clean and lightly restructure the raw data (e.g., casting data types, renaming columns).
     -   **Data Mart Models:** Build final analytical tables (facts and dimensions) from the staging models, creating a star schema for easy analysis.
 -   **Testing & Documentation:** dbt tests are used to ensure data quality and integrity. Project documentation is generated with `dbt docs generate`.
+
+## Task 3: Data Enrichment with Object Detection (YOLO)
+
+This task enriches the scraped image data by performing object detection using a pre-trained YOLOv8 model.
+
+-   **Object Detection Script:** The `scripts/detect_objects.py` script scans for new images, uses YOLOv8 to detect objects within them, and stores the detection results directly into a PostgreSQL table (`raw_image_detections`).
+-   **YOLOv8 Integration:** Utilizes the `ultralytics` package to leverage the YOLOv8 model for efficient and accurate object detection.
+-   **Data Model Integration:** A new dbt fact table (`fct_image_detections`) is created to store the object detection results. This table includes `message_id` (linking back to `fct_messages`), `detected_object_class`, and `confidence_score`, integrating visual content analysis into the data warehouse.
