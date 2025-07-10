@@ -4,7 +4,7 @@ An end-to-end data pipeline for Telegram, leveraging dbt for transformation, Dag
 
 ## Project Structure
 
-The following outlines the project's file and directory structure, which is consistently maintained across all branches:
+The following outlines the project's file and directory structure, which is consistently maintained across all branches. New files and directories created during feature development are integrated into this established structure.
 
 ```
 .github/workflows/main.yml  # CI/CD pipeline
